@@ -15,6 +15,11 @@
 <body>
     <div class="container">
         <h1>Database Messages</h1>
+        <form action="/" method="GET" style="margin-bottom: 20px;">
+            <input type="text" name="search" placeholder="Search messages..." value="{{ request.args.get('search', '') }}">
+            <button type="submit" style="background: #ffaa00;">Search</button>
+            <a href="/" style="color: #00adb5; margin-left: 10px; text-decoration: none;">Clear</a>
+        </form>
         <ul>
             {% for m in messages %}
             <li>{{ m.text }}</li>
