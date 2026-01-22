@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Flask Docker App</title>
+    <style>
+        body { background: #121212; color: #e0e0e0; font-family: sans-serif; padding: 50px; }
+        .container { max-width: 600px; margin: auto; background: #1e1e1e; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        h1 { color: #00adb5; }
+        ul { list-style: none; padding: 0; }
+        li { background: #2c2c2c; margin: 10px 0; padding: 10px; border-radius: 5px; }
+        input { padding: 10px; width: 70%; border-radius: 5px; border: none; }
+        button { padding: 10px; background: #00adb5; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Database Messages</h1>
+        <ul>
+            {% for m in messages %}
+            <li>{{ m.text }}</li>
+            {% endfor %}
+        </ul>
+        <hr>
+        <h3>Add a Message</h3>
+        <form action="/add_msg" method="POST">
+            <input type="text" name="content" placeholder="Type something..." required>
+            <button type="submit">Save to DB</button>
+        </form>
+    </div>
+</body>
+</html>
