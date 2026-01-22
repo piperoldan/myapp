@@ -22,7 +22,11 @@
         </form>
         <ul>
             {% for m in messages %}
-            <li>{{ m.text }}</li>
+            <li>
+                <strong>{{ m.text }}</strong> 
+                <br>
+                <small style="color: #888;">Saved on: {{ m.created_at }}</small>
+            </li>
             {% endfor %}
         </ul>
         <hr>

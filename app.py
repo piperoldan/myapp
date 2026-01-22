@@ -1,3 +1,4 @@
+from datetime import datetime
 import time
 from flask import Flask, render_template, request, redirect
 from sqlalchemy import create_engine, Column, Integer, String
@@ -17,6 +18,7 @@ class Message(Base):
     __tablename__ = 'messages'
     id = Column(Integer, primary_key=True)
     text = Column(String(100))
+    created_at = Column(String(50), default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
 # --- NEW RETRY LOGIC ---
 def init_db():
