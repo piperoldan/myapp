@@ -1,14 +1,13 @@
-from datetime import datetime
 import time
 from flask import Flask, render_template, request, redirect
-from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy import create_engine, Column, Integer, String, DateTime
+from datetime import datetime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
 
 app = Flask(__name__)
 
-# Setup Database connection
 db_url = os.getenv('DATABASE_URL')
 engine = create_engine(db_url)
 Session = sessionmaker(bind=engine)
@@ -17,47 +16,40 @@ Base = declarative_base()
 class Message(Base):
     __tablename__ = 'messages'
     id = Column(Integer, primary_key=True)
-    text = Column(String(100))
-    created_at = Column(String(50), default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    text = Column(String(255))
+    category = Column(String(50), default="General") # Fixed: Added this
+    created_at = Column(DateTime, default=datetime.utcnow)
 
-# --- NEW RETRY LOGIC ---
 def init_db():
     retries = 5
     while retries > 0:
         try:
             Base.metadata.create_all(engine)
-            print("Successfully connected to the database!")
             return
-        except Exception as e:
-            print(f"Database not ready yet... retrying in 5 seconds. ({retries} retries left)")
+        except Exception:
             time.sleep(5)
             retries -= 1
-    print("Could not connect to database. Check your config.")
 
 init_db()
-# -----------------------
 
 @app.route('/')
 def home():
     search_query = request.args.get('search')
     session = Session()
-    
     if search_query:
-        # This filters the database for messages that "contain" the search text
         messages = session.query(Message).filter(Message.text.contains(search_query)).all()
     else:
-        # Otherwise, show everything
         messages = session.query(Message).all()
-        
     session.close()
     return render_template('index.html', messages=messages)
 
 @app.route('/add_msg', methods=['POST'])
 def add_msg():
-    content = request.form.get('content')
-    if content:
+    text = request.form.get('msg')
+    category = request.form.get('category') 
+    if text:
         session = Session()
-        new_msg = Message(text=content)
+        new_msg = Message(text=text, category=category) 
         session.add(new_msg)
         session.commit()
         session.close()

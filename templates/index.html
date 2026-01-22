@@ -1,44 +1,52 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Flask Docker App</title>
+    <title>My Notes App</title>
     <style>
         body { background: #121212; color: #e0e0e0; font-family: sans-serif; padding: 50px; }
-        .container { max-width: 600px; margin: auto; background: #1e1e1e; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .container { max-width: 600px; margin: auto; background: #1e1e1e; padding: 20px; border-radius: 10px; }
         h1 { color: #00adb5; }
-        ul { list-style: none; padding: 0; }
-        li { background: #2c2c2c; margin: 10px 0; padding: 10px; border-radius: 5px; }
-        input { padding: 10px; width: 70%; border-radius: 5px; border: none; }
+        .msg-item { display: flex; justify-content: space-between; align-items: center; background: #2c2c2c; margin: 10px 0; padding: 15px; border-radius: 5px; }
+        .tag { background: #444; padding: 2px 8px; border-radius: 10px; font-size: 0.7em; color: #00d1b2; text-transform: uppercase; }
+        input, select { padding: 10px; border-radius: 5px; border: none; margin-bottom: 5px; }
         button { padding: 10px; background: #00adb5; color: white; border: none; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Database Messages</h1>
+        <h1>My Notes</h1>
+        
         <form action="/" method="GET" style="margin-bottom: 20px;">
-            <input type="text" name="search" placeholder="Search messages..." value="{{ request.args.get('search', '') }}">
+            <input type="text" name="search" placeholder="Search..." value="{{ request.args.get('search', '') }}">
             <button type="submit" style="background: #ffaa00;">Search</button>
-            <a href="/" style="color: #00adb5; margin-left: 10px; text-decoration: none;">Clear</a>
         </form>
+
         <ul>
             {% for m in messages %}
-            <li style="display: flex; justify-content: space-between; align-items: center; background: #2c2c2c; margin: 10px 0; padding: 15px; border-radius: 5px;">
+            <li class="msg-item">
                 <div>
-                    <strong>{{ m.text }}</strong><br>
-                    <small style="color: #888;">{{ m.created_at }}</small>
+                    <span class="tag">{{ m.category }}</span><br>
+                    <strong>{{ m.text }}</strong>
                 </div>
-        
-                <form action="/delete/{{ m.id }}" method="POST" style="margin: 0;">
-                    <button type="submit" style="background: #ff4d4d; padding: 5px 10px; font-size: 0.8em;">Delete</button>
+                <form action="/delete/{{ m.id }}" method="POST">
+                    <button type="submit" style="background: #ff4d4d;">Delete</button>
                 </form>
             </li>
             {% endfor %}
         </ul>
+
         <hr>
-        <h3>Add a Message</h3>
+
+        <h3>Add Note</h3>
         <form action="/add_msg" method="POST">
-            <input type="text" name="content" placeholder="Type something..." required>
-            <button type="submit">Save to DB</button>
+            <input type="text" name="msg" placeholder="Write a note..." required style="width: 60%;">
+            <select name="category">
+                <option value="General">General</option>
+                <option value="Work">Work</option>
+                <option value="Personal">Personal</option>
+                <option value="Urgent">Urgent</option>
+            </select>
+            <button type="submit">Add</button>
         </form>
     </div>
 </body>
