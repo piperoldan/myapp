@@ -22,10 +22,15 @@
         </form>
         <ul>
             {% for m in messages %}
-            <li>
-                <strong>{{ m.text }}</strong> 
-                <br>
-                <small style="color: #888;">Saved on: {{ m.created_at }}</small>
+            <li style="display: flex; justify-content: space-between; align-items: center; background: #2c2c2c; margin: 10px 0; padding: 15px; border-radius: 5px;">
+                <div>
+                    <strong>{{ m.text }}</strong><br>
+                    <small style="color: #888;">{{ m.created_at }}</small>
+                </div>
+        
+                <form action="/delete/{{ m.id }}" method="POST" style="margin: 0;">
+                    <button type="submit" style="background: #ff4d4d; padding: 5px 10px; font-size: 0.8em;">Delete</button>
+                </form>
             </li>
             {% endfor %}
         </ul>

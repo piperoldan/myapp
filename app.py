@@ -63,5 +63,15 @@ def add_msg():
         session.close()
     return redirect('/')
 
+@app.route('/delete/<int:msg_id>', methods=['POST'])
+def delete_msg(msg_id):
+    session = Session()
+    msg_to_delete = session.query(Message).get(msg_id)
+    if msg_to_delete:
+        session.delete(msg_to_delete)
+        session.commit()
+    session.close()
+    return redirect('/')
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=4000)
