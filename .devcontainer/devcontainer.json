@@ -1,0 +1,21 @@
+{
+    "name": "My Flask App",
+    "dockerComposeFile": ["../docker-compose.yml"],
+    "service": "flask-app", 
+    "workspaceFolder": "/app",
+    "overrideCommand": true,
+    "features": {
+        "ghcr.io/devcontainers/features/git:1": {
+            "version": "latest"
+        },
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": ["ms-python.python"]
+        }
+    },
+    "forwardPorts": [4000, 8080, 8081],
+    // This tells VS Code to use the 'root' user inside the container 
+    // to avoid permission errors on your Mac files
+    "remoteUser": "root"
+}
