@@ -1,0 +1,4 @@
+{
+    "remote.restoreForwardedPorts": false,
+    "remote.forwardOnOpen": false
+}
