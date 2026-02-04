@@ -4,7 +4,7 @@ services:
     image: piperoldan/myapp:optimized
     restart: always
     ports:
-      - "8080:4000"
+      - "4000:4000"  # CHANGED: This was 8080:4000
     volumes:
       - .:/app
     environment:
@@ -12,7 +12,6 @@ services:
       - FLASK_ENV=development
     depends_on:
       - db
-
   db:
     image: mysql:8.0
     restart: always
@@ -22,13 +21,13 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - db_data:/var/lib/mysql  # This maps internal DB data to your Mac
+      - db_data:/var/lib/mysql
 
   adminer:
     image: adminer:latest
     restart: always
     ports:
-      - "8081:8080"  # We'll use 8081 for the database UI
+      - "8081:8080"
 
 volumes:
-  db_data:  # This defines the "safe" storage area
+  db_data:

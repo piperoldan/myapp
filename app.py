@@ -1,14 +1,20 @@
+import os
 import time
+from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv("/workspaces/myapp/.env")
 from flask import Flask, render_template, request, redirect
 from sqlalchemy import create_engine, Column, Integer, String, DateTime
 from datetime import datetime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import os
 
 app = Flask(__name__)
 
-db_url = os.getenv('DATABASE_URL')
+db_url = os.getenv("DATABASE_URL") or (
+    f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@172.17.0.1:3306/{os.getenv('DB_NAME')}"
+)
+print("DATABASE_URL being used:", db_url, flush=True)
 engine = create_engine(db_url)
 Session = sessionmaker(bind=engine)
 Base = declarative_base()
@@ -30,7 +36,14 @@ def init_db():
             time.sleep(5)
             retries -= 1
 
-init_db()
+_db_inited = False
+
+@app.before_request
+def _startup():
+    global _db_inited
+    if not _db_inited:
+        init_db()
+        _db_inited = True
 
 @app.route('/')
 def home():
@@ -66,4 +79,4 @@ def delete_msg(msg_id):
     return redirect('/')
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=4000)
+    app.run(host="0.0.0.0", port=4000, debug=True, use_reloader=False)

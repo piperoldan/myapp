@@ -1,7 +1,10 @@
 FROM python:3.12-slim
 WORKDIR /app
 
-# Install everything in one go, forcing the wheel upgrade first
+# Install system dependencies (SSH for Git)
+RUN apt-get update && apt-get install -y openssh-client && rm -rf /var/lib/apt/lists/*
+
+# Force wheel upgrade and install python requirements
 RUN pip install --no-cache-dir --upgrade pip wheel==0.46.2
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
