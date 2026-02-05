@@ -8,6 +8,10 @@
         "vscode": {
             "settings": {
                 "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.terminal.activateEnvInSelectedTerminal": true,
+                "files.autoSave": "onFocusChange",
+                "editor.formatOnSave": true,
+                "python.analysis.typeCheckingMode": "basic",
                 "python.terminal.activateEnvInSelectedTerminal": true
             },
             "extensions": [
