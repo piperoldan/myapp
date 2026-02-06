@@ -1,8 +1,11 @@
 {
     "name": "My Pre-built Flask App",
     "image": "ghcr.io/piperoldan/myapp:latest",
-    //"shutdownAction": "none", // Uncomment to activate
-    "shutdownAction": "stopContainer",
+    "features": {
+        "ghcr.io/devcontainers/features/git:1": {}
+    },
+    "shutdownAction": "none",
+    //"shutdownAction": "stopContainer", // Uncomment to activate
     "postCreateCommand": "pip install -r requirements.txt",
     "runArgs": [
         "--add-host=host.docker.internal:host-gateway"

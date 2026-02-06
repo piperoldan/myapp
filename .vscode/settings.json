@@ -1,4 +1,7 @@
 {
     "remote.restoreForwardedPorts": false,
-    "remote.forwardOnOpen": false
+    "remote.forwardOnOpen": false,
+    "dotfiles.repository": "piperoldan/dotfiles",
+    "dotfiles.targetPath": "~/dotfiles",
+    "dotfiles.installCommand": "install.sh"
 }
