@@ -1,14 +1,22 @@
 {
     "name": "My Pre-built Flask App",
     "image": "ghcr.io/piperoldan/myapp:latest",
-    "runArgs": ["--add-host=host.docker.internal:host-gateway"],
-    "forwardPorts": [4000, 8081, 3306], // Ensures Flask, Adminer, and MySQL are all forwarded
+    //"shutdownAction": "none", // Uncomment to activate
+    "shutdownAction": "stopContainer",
+    "postCreateCommand": "pip install -r requirements.txt",
+    "runArgs": [
+        "--add-host=host.docker.internal:host-gateway"
+    ],
+    "forwardPorts": [
+        4000,
+        8081,
+        3306
+    ], // Ensures Flask, Adminer, and MySQL are all forwarded
     "remoteUser": "root",
     "customizations": {
         "vscode": {
             "settings": {
                 "python.defaultInterpreterPath": "/usr/local/bin/python",
-                "python.terminal.activateEnvInSelectedTerminal": true,
                 "files.autoSave": "onFocusChange",
                 "editor.formatOnSave": true,
                 "python.analysis.typeCheckingMode": "basic",
