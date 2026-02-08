@@ -2,11 +2,16 @@
     "name": "My Pre-built Flask App",
     "image": "ghcr.io/piperoldan/myapp:latest",
     "features": {
+        "ghcr.io/devcontainers/features/common-utils:1": {
+            "installZsh": true,
+            "username": "vscode",
+            "upgradePackages": true
+        },
         "ghcr.io/devcontainers/features/git:1": {}
     },
+    "postCreateCommand": "pip install -r requirements.txt",
     "shutdownAction": "none",
     //"shutdownAction": "stopContainer", // Uncomment to activate
-    "postCreateCommand": "pip install -r requirements.txt",
     "runArgs": [
         "--add-host=host.docker.internal:host-gateway"
     ],
@@ -15,7 +20,7 @@
         8081,
         3306
     ], // Ensures Flask, Adminer, and MySQL are all forwarded
-    "remoteUser": "root",
+    "remoteUser": "vscode",
     "customizations": {
         "vscode": {
             "settings": {
