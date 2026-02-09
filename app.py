@@ -2,7 +2,7 @@ import os
 import time
 from pathlib import Path
 from dotenv import load_dotenv
-load_dotenv("/workspaces/myapp/.env")
+load_dotenv() # This looks for .env in the current directory automatically
 from flask import Flask, render_template, request, redirect
 from sqlalchemy import create_engine, Column, Integer, String, DateTime
 from datetime import datetime

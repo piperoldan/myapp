@@ -13,7 +13,9 @@
     "shutdownAction": "none",
     //"shutdownAction": "stopContainer", // Uncomment to activate
     "runArgs": [
-        "--add-host=host.docker.internal:host-gateway"
+        "--add-host=host.docker.internal:host-gateway",
+        "--env-file",
+        ".env"
     ],
     "forwardPorts": [
         4000,
