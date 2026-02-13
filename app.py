@@ -78,5 +78,15 @@ def delete_msg(msg_id):
     session.close()
     return redirect('/')
 
+@app.route('/test_mount')
+def test_mount():
+    try:
+        # We look in the 'target' path we defined in devcontainer.json
+        with open('/data-from-host/hello.txt', 'r') as f:
+            content = f.read()
+        return f"File content from Mac: {content}"
+    except Exception as e:
+        return f"Could not read file: {str(e)}"
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=4000, debug=True, use_reloader=False)
