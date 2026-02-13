@@ -4,6 +4,8 @@
     "mounts": [
         "source=${localEnv:HOME}/container-test-data,target=/data-from-host,type=bind,consistency=cached"
     ],
+    "workspaceMount": "source=${localWorkspaceFolder},target=/app,type=bind",
+    "workspaceFolder": "/app",
     "features": {
         "ghcr.io/devcontainers/features/common-utils:1": {
             "installZsh": true,
