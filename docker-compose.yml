@@ -1,33 +1,33 @@
+version: '3.8'
+
 services:
-  flask-app:
-    build: .
-    image: piperoldan/myapp:optimized
-    restart: always
-    ports:
-      - "4000:4000"  # CHANGED: This was 8080:4000
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
     volumes:
-      - .:/app
+      - ..:/app:cached
     environment:
-      - DATABASE_URL=mysql+pymysql://${DB_USER}:${DB_PASSWORD}@db/${DB_NAME}
       - FLASK_ENV=development
-    depends_on:
-      - db
+    ports:
+      - "4000:4000"
+
   db:
     image: mysql:8.0
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
-    ports:
-      - "3306:3306"
     volumes:
-      - db_data:/var/lib/mysql
+      # This is the targeted named volume for performance
+      - mysql-data:/var/lib/mysql
 
   adminer:
-    image: adminer:latest
+    image: adminer
     restart: always
     ports:
       - "8081:8080"
 
 volumes:
-  db_data:
+  # This tells Docker to manage the 'mysql-data' volume internally
+  mysql-data:
