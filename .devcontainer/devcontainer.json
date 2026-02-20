@@ -6,6 +6,7 @@
     ],
     "workspaceMount": "source=${localWorkspaceFolder},target=/app,type=bind",
     "workspaceFolder": "/app",
+    "remoteUser": "vscode",
     "features": {
         "ghcr.io/devcontainers/features/common-utils:1": {
             "installZsh": true,
