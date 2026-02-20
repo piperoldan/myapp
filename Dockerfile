@@ -32,4 +32,10 @@ RUN chown -R $USERNAME:$USER_GID /app
 USER $USERNAME
 
 EXPOSE 4000
+# Persist bash history
+RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.bash_history" \
+    && mkdir /commandhistory \
+    && touch /commandhistory/.bash_history \
+    && chown -R vscode /commandhistory \
+    && echo "$SNIPPET" >> "/home/vscode/.bashrc"
 CMD ["flask", "run", "--host=0.0.0.0", "--port=4000"]

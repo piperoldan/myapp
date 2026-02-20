@@ -7,6 +7,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ..:/app:cached
+      - myapp-bashhistory:/commandhistory # to remember bash commands
     environment:
       - FLASK_ENV=development
     ports:
@@ -31,3 +32,4 @@ services:
 volumes:
   # This tells Docker to manage the 'mysql-data' volume internally
   mysql-data:
+  myapp-bashhistory: # To remember bash commands
