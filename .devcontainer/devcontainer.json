@@ -15,7 +15,7 @@
         },
         "ghcr.io/devcontainers/features/git:1": {}
     },
-    "postCreateCommand": "python3 -m pip install --upgrade pip && pip install -r requirements.txt",
+    "postCreateCommand": "python3 -m venv .venv && . .venv/bin/activate && python -m pip install --upgrade pip && python -m pip install -r requirements.txt && sudo sh -c 'printf \"%s\\n\" \"# Auto-activate project venv for interactive shells\" \"if [ -f /app/.venv/bin/activate ] && [ -z \\\"\\$VIRTUAL_ENV\\\" ]; then\" \"  . /app/.venv/bin/activate\" \"fi\" > /etc/profile.d/venv.sh' && sudo chmod 644 /etc/profile.d/venv.sh",
     "shutdownAction": "none",
     //"shutdownAction": "stopContainer", // Uncomment to activate
     "runArgs": [
@@ -25,7 +25,7 @@
     ],
     "containerEnv": {
         "FLASK_DEBUG": "1",
-        "PYTHONUNBUFFERED": "1"
+        "PYTHONUNBUFFERED": "1",
     },
     "forwardPorts": [
         4000,
@@ -36,11 +36,21 @@
     "customizations": {
         "vscode": {
             "settings": {
-                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.defaultInterpreterPath": "/app/.venv/bin/python",
                 "files.autoSave": "onFocusChange",
                 "editor.formatOnSave": true,
                 "python.analysis.typeCheckingMode": "basic",
-                "python.terminal.activateEnvInSelectedTerminal": true
+                "python.terminal.activateEnvInSelectedTerminal": true,
+                "terminal.integrated.defaultProfile.linux": "bash",
+                "terminal.integrated.profiles.linux": {
+                    "bash": {
+                        "path": "/bin/bash",
+                        "args": [
+                            "-lc",
+                            "source /app/.venv/bin/activate && exec bash"
+                        ]
+                    }
+                }
             },
             "extensions": [
                 "ms-python.python",
