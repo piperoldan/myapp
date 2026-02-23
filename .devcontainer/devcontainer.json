@@ -25,14 +25,13 @@
     ],
     "containerEnv": {
         "FLASK_DEBUG": "1",
-        "PYTHONUNBUFFERED": "1",
+        "PYTHONUNBUFFERED": "1"
     },
     "forwardPorts": [
         4000,
         8081,
         3306
     ], // Ensures Flask, Adminer, and MySQL are all forwarded
-    "remoteUser": "vscode",
     "customizations": {
         "vscode": {
             "settings": {
