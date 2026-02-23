@@ -15,7 +15,7 @@
         },
         "ghcr.io/devcontainers/features/git:1": {}
     },
-    "postCreateCommand": "python3 -m venv .venv && . .venv/bin/activate && python -m pip install --upgrade pip && python -m pip install -r requirements.txt && sudo sh -c 'printf \"%s\\n\" \"# Auto-activate project venv for interactive shells\" \"if [ -f /app/.venv/bin/activate ] && [ -z \\\"\\$VIRTUAL_ENV\\\" ]; then\" \"  . /app/.venv/bin/activate\" \"fi\" > /etc/profile.d/venv.sh' && sudo chmod 644 /etc/profile.d/venv.sh",
+    "postCreateCommand": "python3 -m venv .venv && . .venv/bin/activate && python -m pip install --upgrade pip && python -m pip install -r requirements.txt && sudo sh -c 'printf \"%s\\n\" \"# Auto-activate project venv for interactive shells\" \"if [ -f /app/.venv/bin/activate ] && [ -z \\\"\\$VIRTUAL_ENV\\\" ]; then\" \"  . /app/.venv/bin/activate\" \"fi\" > /etc/profile.d/venv.sh' && sudo chmod 644 /etc/profile.d/venv.sh && sh -c 'grep -q \"# AUTO_VENV\" /home/vscode/.bashrc || printf \"%s\\n\" \"\" \"# AUTO_VENV: activate project venv for VS Code terminals\" \"if [ -f /app/.venv/bin/activate ] && [ -z \\\"\\$VIRTUAL_ENV\\\" ]; then\" \"  . /app/.venv/bin/activate\" \"fi\" >> /home/vscode/.bashrc'",
     "shutdownAction": "none",
     //"shutdownAction": "stopContainer", // Uncomment to activate
     "runArgs": [
