@@ -2,7 +2,8 @@
     "name": "My Pre-built Flask App",
     "image": "ghcr.io/piperoldan/myapp:latest",
     "mounts": [
-        "source=${localEnv:HOME}/container-test-data,target=/data-from-host,type=bind,consistency=cached"
+        "source=${localEnv:HOME}/container-test-data,target=/data-from-host,type=bind,consistency=cached",
+        "source=myapp-vscode-home,target=/home/vscode,type=volume"
     ],
     "workspaceMount": "source=${localWorkspaceFolder},target=/app,type=bind",
     "workspaceFolder": "/app",
