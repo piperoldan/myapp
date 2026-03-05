@@ -45,6 +45,9 @@ case "${1:-}" in
   --stop )
     MODE="stop"
     ;;
+  --doctor )
+    MODE="doctor"
+    ;;
   -h|--help )
     cat <<'USAGE'
 Usage:
@@ -76,6 +79,70 @@ if [[ "$MODE" == "stop" ]]; then
     docker compose down
   fi
   ok "Stopped."
+  exit 0
+fi
+
+# --- MODE: doctor ---
+if [[ "$MODE" == "doctor" ]]; then
+  log "Running environment diagnostics..."
+
+  echo
+
+  # Docker check
+  if docker info >/dev/null 2>&1; then
+    ok "Docker engine is running"
+  else
+    die "Docker engine is NOT running"
+  fi
+
+  # Containers
+  if docker ps --format '{{.Names}}' | grep -q "myapp-db-1"; then
+    ok "MySQL container detected"
+  else
+    warn "MySQL container not running"
+  fi
+
+  if docker ps --format '{{.Names}}' | grep -q "myapp-adminer-1"; then
+    ok "Adminer container detected"
+  else
+    warn "Adminer container not running"
+  fi
+
+  # Devcontainer
+  DEVCONT_ID="$(find_devcontainer || true)"
+
+  if [[ -n "$DEVCONT_ID" ]]; then
+    ok "Devcontainer running ($DEVCONT_ID)"
+  else
+    warn "Devcontainer not detected"
+  fi
+
+  # Network
+  if docker network ls | grep -q "myapp_default"; then
+    ok "Docker network myapp_default exists"
+  else
+    warn "Docker network myapp_default missing"
+  fi
+
+  # Flask
+  if [[ -n "$DEVCONT_ID" ]]; then
+    if docker exec "$DEVCONT_ID" ss -lnt | grep -q ":4000"; then
+      ok "Flask process listening on port 4000"
+    else
+      warn "Flask not listening on port 4000"
+    fi
+  fi
+
+  # HTTP check
+  if curl -fsS --max-time 2 http://localhost:4000 >/dev/null 2>&1; then
+    ok "Flask reachable from Mac"
+  else
+    warn "Flask not reachable from Mac (port forwarding may be off)"
+  fi
+
+  echo
+  ok "Doctor check complete"
+
   exit 0
 fi
 
