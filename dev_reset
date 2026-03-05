@@ -98,23 +98,40 @@ done
 # --- 6) Verify DB from inside the devcontainer (confirms network + DATABASE_URL) ---
 log "Verify DB from inside devcontainer..."
 
-docker exec -i "${DEVCONT_ID}" bash -lc 'python - <<PY
+# Pull DATABASE_URL from devcontainer.json if it's not present in the container env
+DEVCONTAINER_JSON="${PROJECT_ROOT}/.devcontainer/devcontainer.json"
+
+DATABASE_URL_FROM_FILE="$(python3 - <<PY
+import json, sys
+p = "${DEVCONTAINER_JSON}"
+try:
+    data = json.load(open(p))
+except Exception as e:
+    print("")
+    sys.exit(0)
+
+env = data.get("containerEnv", {}) or {}
+print(env.get("DATABASE_URL",""))
+PY
+)"
+
+docker exec -i "${DEVCONT_ID}" bash -lc "python - <<'PY'
 import os, sys
 from sqlalchemy import create_engine, text
 
-url = os.environ.get("DATABASE_URL")
+url = os.environ.get('DATABASE_URL') or '${DATABASE_URL_FROM_FILE}'
 if not url:
-  print("ERROR: DATABASE_URL is not set in the devcontainer env.")
+  print('ERROR: DATABASE_URL is not set in devcontainer env, and not found in .devcontainer/devcontainer.json containerEnv.')
   sys.exit(1)
 
 try:
   engine = create_engine(url, pool_pre_ping=True)
   with engine.connect() as conn:
-    conn.execute(text("SELECT 1"))
-  print("OK: DB reachable from devcontainer via DATABASE_URL")
+    conn.execute(text('SELECT 1'))
+  print('OK: DB reachable from devcontainer via DATABASE_URL')
 except Exception as e:
-  print("ERROR: DB check failed:", e)
+  print('ERROR: DB check failed:', e)
   sys.exit(1)
-PY'
+PY"
 
 log "Baseline complete."
