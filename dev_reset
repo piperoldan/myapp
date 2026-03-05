@@ -46,4 +46,34 @@ else
   docker compose up -d
 fi
 
+# --- 4) Connect VS Code devcontainer to the compose network ---
+log "Connecting devcontainer to compose network (if needed)..."
+
+DB_CONTAINER="myapp-db-1"
+
+# Get the network name that the DB container is on (usually myapp_default)
+NETWORK_NAME="$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{end}}' "$DB_CONTAINER" | awk '{print $1}')"
+
+if [[ -z "${NETWORK_NAME:-}" ]]; then
+  echo "ERROR: Could not determine compose network from $DB_CONTAINER"
+  exit 1
+fi
+
+# Find the devcontainer by VS Code label (most reliable)
+DEVCONT_ID="$(docker ps --filter "label=devcontainer.local_folder=${PROJECT_ROOT}" --format '{{.ID}}' | head -n 1)"
+
+if [[ -z "${DEVCONT_ID:-}" ]]; then
+  echo "ERROR: Could not find a running VS Code devcontainer for this folder."
+  echo "Open VS Code > Reopen in Container, then run ./dev_reset again."
+  exit 1
+fi
+
+# If not already connected, connect it
+if docker inspect -f '{{json .NetworkSettings.Networks}}' "$DEVCONT_ID" | grep -q "\"${NETWORK_NAME}\""; then
+  log "Devcontainer already connected to ${NETWORK_NAME}"
+else
+  docker network connect "${NETWORK_NAME}" "${DEVCONT_ID}" || true
+  log "Connected devcontainer to ${NETWORK_NAME}"
+fi
+
 log "Baseline complete."
