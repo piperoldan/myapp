@@ -198,4 +198,29 @@ else
   log "Skipping: localhost:4000 not reachable from Mac (this is normal if VS Code port-forwarding isn't active)"
 fi
 
-log "Baseline complete."
+log "Environment Status"
+
+# Containers
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" \
+  --filter "name=myapp-" || true
+
+echo
+
+# Network + Devcontainer
+ok "Compose network: ${NETWORK_NAME}"
+ok "Devcontainer ID: ${DEVCONT_ID}"
+
+# URLs (if exposed/forwarded)
+if curl -fsS --max-time 2 "http://localhost:4000" >/dev/null 2>&1; then
+  ok "Flask URL:   http://localhost:4000"
+else
+  warn "Flask URL: http://localhost:4000 (not reachable from Mac; VS Code port-forward may be off)"
+fi
+
+if curl -fsS --max-time 2 "http://localhost:8081" >/dev/null 2>&1; then
+  ok "Adminer URL: http://localhost:8081"
+else
+  warn "Adminer URL: http://localhost:8081 (not reachable from Mac)"
+fi
+
+ok "dev_reset finished ✅"
