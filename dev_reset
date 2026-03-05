@@ -76,4 +76,45 @@ else
   log "Connected devcontainer to ${NETWORK_NAME}"
 fi
 
+# --- 5) Health check: DB container responding ---
+log "Health check: waiting for MySQL to accept connections..."
+
+# Read MySQL root password from compose env if available; fallback to common default.
+MYSQL_USER="root"
+MYSQL_PW="${MYSQL_ROOT_PASSWORD:-password}"
+
+for i in {1..60}; do
+  if docker exec myapp-db-1 mysqladmin ping -h 127.0.0.1 -u"${MYSQL_USER}" -p"${MYSQL_PW}" --silent >/dev/null 2>&1; then
+    log "MySQL is responding."
+    break
+  fi
+  sleep 1
+  if [[ "$i" == "60" ]]; then
+    echo "ERROR: MySQL did not become ready."
+    exit 1
+  fi
+done
+
+# --- 6) Verify DB from inside the devcontainer (confirms network + DATABASE_URL) ---
+log "Verify DB from inside devcontainer..."
+
+docker exec -i "${DEVCONT_ID}" bash -lc 'python - <<PY
+import os, sys
+from sqlalchemy import create_engine, text
+
+url = os.environ.get("DATABASE_URL")
+if not url:
+  print("ERROR: DATABASE_URL is not set in the devcontainer env.")
+  sys.exit(1)
+
+try:
+  engine = create_engine(url, pool_pre_ping=True)
+  with engine.connect() as conn:
+    conn.execute(text("SELECT 1"))
+  print("OK: DB reachable from devcontainer via DATABASE_URL")
+except Exception as e:
+  print("ERROR: DB check failed:", e)
+  sys.exit(1)
+PY'
+
 log "Baseline complete."
