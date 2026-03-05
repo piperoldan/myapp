@@ -4,7 +4,22 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_ROOT"
 
-log() { printf "\n==> %s\n" "$*"; }
+# --- Pretty output helpers ---
+if [[ -t 1 ]]; then
+  RED=$'\033[0;31m'
+  GRN=$'\033[0;32m'
+  YEL=$'\033[0;33m'
+  BLU=$'\033[0;34m'
+  BLD=$'\033[1m'
+  RST=$'\033[0m'
+else
+  RED=""; GRN=""; YEL=""; BLU=""; BLD=""; RST=""
+fi
+
+log()  { printf "\n${BLU}${BLD}==>${RST} %s\n" "$*"; }
+ok()   { printf "${GRN}✔${RST} %s\n" "$*"; }
+warn() { printf "${YEL}⚠${RST} %s\n" "$*"; }
+die()  { printf "${RED}✖${RST} %s\n" "$*"; exit 1; }
 
 FRESH=0
 if [[ "${1:-}" == "--fresh" ]]; then
