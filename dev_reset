@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$PROJECT_ROOT"
+
+log() { printf "\n==> %s\n" "$*"; }
+
+# --- 1) Restore repo (but keep this script safe once it's tracked) ---
+log "Restoring repo (git reset/clean)..."
+git reset --hard
+
+# Clean untracked files, but do NOT delete this script (safety for first run)
+git clean -fd -e dev_reset
+
+# --- 2) Start Docker Desktop (macOS only) ---
+log "Ensuring Docker engine is running..."
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  if ! docker info >/dev/null 2>&1; then
+    log "Starting Docker Desktop (macOS)..."
+    open -a Docker || true
+  fi
+else
+  log "Not on macOS (likely inside devcontainer). Skipping 'open -a Docker'."
+fi
+
+log "Waiting for Docker engine..."
+for i in {1..120}; do
+  if docker info >/dev/null 2>&1; then
+    log "Docker is ready."
+    break
+  fi
+  sleep 1
+  if [[ "$i" == "120" ]]; then
+    echo "ERROR: Docker did not become ready."
+    echo "If you're in the devcontainer, ensure Docker Desktop is running on your Mac."
+    exit 1
+  fi
+done
+
+# --- 3) Start docker compose services ---
+log "Starting docker compose services..."
+if command -v docker-compose >/dev/null 2>&1; then
+  docker-compose up -d
+else
+  docker compose up -d
+fi
+
+log "Baseline complete."
