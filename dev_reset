@@ -23,6 +23,7 @@ die()  { printf "${RED}✖${RST} %s\n" "$*"; exit 1; }
 
 MODE="run"   # run | status | logs | stop
 FRESH=0
+SAFE=0
 
 case "${1:-}" in
   "" )
@@ -30,6 +31,10 @@ case "${1:-}" in
   --fresh )
     FRESH=1
     warn "Fresh mode enabled: will recreate compose services (down -v + up --build)"
+    ;;
+  --safe )
+    SAFE=1
+    warn "Safe mode enabled: uncommitted changes will be stashed"
     ;;
   --status )
     MODE="status"
@@ -117,10 +122,19 @@ fi
 
 # --- 1) Restore repo (but keep this script safe once it's tracked) ---
 log "Restoring repo (git reset/clean)..."
-git reset --hard
 
-# Clean untracked files, but do NOT delete this script (safety for first run)
-git clean -fd -e dev_reset
+if [[ "$SAFE" == "1" ]]; then
+  warn "Saving uncommitted work with git stash"
+  git stash push -u -m "dev_reset safety stash"
+fi
+
+git reset --hard
+git clean -fd
+
+if [[ "$SAFE" == "1" ]]; then
+  warn "Restoring stashed work"
+  git stash pop || warn "No stash to restore"
+fi
 
 # --- 2) Start Docker Desktop (macOS only) ---
 log "Ensuring Docker engine is running..."
