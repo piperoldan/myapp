@@ -141,21 +141,29 @@ else
   log "Flask start command sent. Logs: /tmp/flask.log (inside devcontainer)"
 fi
 
-# --- 8) HTTP health check (from Mac to forwarded port) ---
-log "Health check: HTTP on http://localhost:4000 ..."
+# --- 8) HTTP health check (inside devcontainer = reliable) ---
+log "Health check: HTTP inside devcontainer on http://127.0.0.1:4000 ..."
 
 for i in {1..30}; do
-  if curl -fsS "http://localhost:4000" >/dev/null 2>&1; then
-    log "OK: Flask is responding on localhost:4000"
+  if docker exec "${DEVCONT_ID}" bash -lc "curl -fsS --max-time 2 http://127.0.0.1:4000/ >/dev/null"; then
+    log "OK: Flask is responding inside devcontainer"
     break
   fi
   sleep 1
   if [[ "$i" == "30" ]]; then
-    echo "ERROR: Flask did not respond on http://localhost:4000"
-    echo "Tip: check logs with:"
+    echo "ERROR: Flask did not respond inside devcontainer."
+    echo "Check logs:"
     echo "  docker exec -it ${DEVCONT_ID} bash -lc 'tail -n 120 /tmp/flask.log'"
     exit 1
   fi
 done
+
+# Optional: check from Mac (only works if port 4000 is forwarded/exposed)
+log "Optional check: Mac -> http://localhost:4000 (may fail if VS Code port-forwarding isn't active)..."
+if curl -fsS --max-time 2 "http://localhost:4000" >/dev/null 2>&1; then
+  log "OK: Flask reachable from Mac on localhost:4000"
+else
+  log "Skipping: localhost:4000 not reachable from Mac (this is normal if VS Code port-forwarding isn't active)"
+fi
 
 log "Baseline complete."
