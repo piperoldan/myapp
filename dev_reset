@@ -129,4 +129,33 @@ except Exception as e:
   sys.exit(1)
 PY'
 
+# --- 7) Start Flask (inside devcontainer) ---
+log "Starting Flask inside devcontainer (if not already running)..."
+
+# If something is already listening on 4000 inside the devcontainer, don't start another Flask
+if docker exec "${DEVCONT_ID}" bash -lc "ss -lnt 2>/dev/null | awk '{print \$4}' | grep -q ':4000$'"; then
+  log "Flask appears to already be listening on port 4000 inside devcontainer."
+else
+  # Start Flask in background using your existing script
+  docker exec -d "${DEVCONT_ID}" bash -lc "cd /app && nohup /app/scripts/start_flask.sh >/tmp/flask.log 2>&1"
+  log "Flask start command sent. Logs: /tmp/flask.log (inside devcontainer)"
+fi
+
+# --- 8) HTTP health check (from Mac to forwarded port) ---
+log "Health check: HTTP on http://localhost:4000 ..."
+
+for i in {1..30}; do
+  if curl -fsS "http://localhost:4000" >/dev/null 2>&1; then
+    log "OK: Flask is responding on localhost:4000"
+    break
+  fi
+  sleep 1
+  if [[ "$i" == "30" ]]; then
+    echo "ERROR: Flask did not respond on http://localhost:4000"
+    echo "Tip: check logs with:"
+    echo "  docker exec -it ${DEVCONT_ID} bash -lc 'tail -n 120 /tmp/flask.log'"
+    exit 1
+  fi
+done
+
 log "Baseline complete."
