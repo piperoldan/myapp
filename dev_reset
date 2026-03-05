@@ -118,7 +118,7 @@ if [[ "$MODE" == "doctor" ]]; then
   fi
 
   # Network
-  if docker network ls | grep -q "myapp_default"; then
+  if docker network inspect myapp_default >/dev/null 2>&1; then
     ok "Docker network myapp_default exists"
   else
     warn "Docker network myapp_default missing"
