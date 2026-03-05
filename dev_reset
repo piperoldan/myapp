@@ -21,10 +21,86 @@ ok()   { printf "${GRN}✔${RST} %s\n" "$*"; }
 warn() { printf "${YEL}⚠${RST} %s\n" "$*"; }
 die()  { printf "${RED}✖${RST} %s\n" "$*"; exit 1; }
 
+MODE="run"   # run | status | logs | stop
 FRESH=0
-if [[ "${1:-}" == "--fresh" ]]; then
-  FRESH=1
-  warn "Fresh mode enabled: will recreate compose services (down -v + up --build)"
+
+case "${1:-}" in
+  "" )
+    ;;
+  --fresh )
+    FRESH=1
+    warn "Fresh mode enabled: will recreate compose services (down -v + up --build)"
+    ;;
+  --status )
+    MODE="status"
+    ;;
+  --logs )
+    MODE="logs"
+    ;;
+  --stop )
+    MODE="stop"
+    ;;
+  -h|--help )
+    cat <<'USAGE'
+Usage:
+  ./dev_reset           Restore + start everything + verify
+  ./dev_reset --fresh   Full rebuild (down -v + up --build)
+  ./dev_reset --status  Show environment status only
+  ./dev_reset --logs    Show recent logs (flask + db)
+  ./dev_reset --stop    Stop compose services (and leave repo untouched)
+USAGE
+    exit 0
+    ;;
+  * )
+    die "Unknown option: ${1}. Use --help."
+    ;;
+esac
+
+# Early Exit Commands
+# --- Helper: find devcontainer id (best-effort) ---
+find_devcontainer() {
+  docker ps --filter "label=devcontainer.local_folder=${PROJECT_ROOT}" --format '{{.ID}}' | head -n 1
+}
+
+# --- MODE: stop ---
+if [[ "$MODE" == "stop" ]]; then
+  log "Stopping docker compose services..."
+  if command -v docker-compose >/dev/null 2>&1; then
+    docker-compose down
+  else
+    docker compose down
+  fi
+  ok "Stopped."
+  exit 0
+fi
+
+# --- MODE: status ---
+if [[ "$MODE" == "status" ]]; then
+  log "Environment Status"
+  docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" --filter "name=myapp-" || true
+  DEVCONT_ID="$(find_devcontainer || true)"
+  if [[ -n "${DEVCONT_ID:-}" ]]; then
+    ok "Devcontainer ID: ${DEVCONT_ID}"
+  else
+    warn "Devcontainer not found (VS Code may not be open / not running)"
+  fi
+  exit 0
+fi
+
+# --- MODE: logs ---
+if [[ "$MODE" == "logs" ]]; then
+  log "Recent logs"
+  DEVCONT_ID="$(find_devcontainer || true)"
+  if [[ -n "${DEVCONT_ID:-}" ]]; then
+    log "Flask (/tmp/flask.log)"
+    docker exec -it "${DEVCONT_ID}" bash -lc "tail -n 120 /tmp/flask.log 2>/dev/null || echo 'No /tmp/flask.log yet'"
+  else
+    warn "Devcontainer not found, cannot show /tmp/flask.log"
+  fi
+
+  log "MySQL container logs (myapp-db-1)"
+  docker logs --tail 120 myapp-db-1 2>/dev/null || warn "No db logs or container not running"
+  exit 0
 fi
 
 # --- 1) Restore repo (but keep this script safe once it's tracked) ---
