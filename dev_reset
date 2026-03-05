@@ -6,6 +6,11 @@ cd "$PROJECT_ROOT"
 
 log() { printf "\n==> %s\n" "$*"; }
 
+FRESH=0
+if [[ "${1:-}" == "--fresh" ]]; then
+  FRESH=1
+fi
+
 # --- 1) Restore repo (but keep this script safe once it's tracked) ---
 log "Restoring repo (git reset/clean)..."
 git reset --hard
@@ -40,10 +45,22 @@ done
 
 # --- 3) Start docker compose services ---
 log "Starting docker compose services..."
-if command -v docker-compose >/dev/null 2>&1; then
-  docker-compose up -d
+
+if [[ "$FRESH" == "1" ]]; then
+  log "Fresh mode: stopping and removing compose services..."
+  if command -v docker-compose >/dev/null 2>&1; then
+    docker-compose down -v
+    docker-compose up -d --build
+  else
+    docker compose down -v
+    docker compose up -d --build
+  fi
 else
-  docker compose up -d
+  if command -v docker-compose >/dev/null 2>&1; then
+    docker-compose up -d
+  else
+    docker compose up -d
+  fi
 fi
 
 # --- 4) Connect VS Code devcontainer to the compose network ---
