@@ -90,6 +90,14 @@ fi
 # --- MODE: logs ---
 if [[ "$MODE" == "logs" ]]; then
   log "Recent logs"
+
+  log "Compose status"
+  if command -v docker-compose >/dev/null 2>&1; then
+    docker-compose ps
+  else
+    docker compose ps
+  fi
+
   DEVCONT_ID="$(find_devcontainer || true)"
   if [[ -n "${DEVCONT_ID:-}" ]]; then
     log "Flask (/tmp/flask.log)"
@@ -98,8 +106,12 @@ if [[ "$MODE" == "logs" ]]; then
     warn "Devcontainer not found, cannot show /tmp/flask.log"
   fi
 
-  log "MySQL container logs (myapp-db-1)"
+  log "MySQL container logs (myapp-db-1) - last 120 lines"
   docker logs --tail 120 myapp-db-1 2>/dev/null || warn "No db logs or container not running"
+
+  log "MySQL container logs (filtered: error/warn)"
+  docker logs --tail 300 myapp-db-1 2>/dev/null | egrep -i "error|warn|fatal|denied|fail" || echo "(no errors found)"
+
   exit 0
 fi
 
