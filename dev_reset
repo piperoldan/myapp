@@ -24,6 +24,7 @@ die()  { printf "${RED}✖${RST} %s\n" "$*"; exit 1; }
 FRESH=0
 if [[ "${1:-}" == "--fresh" ]]; then
   FRESH=1
+  warn "Fresh mode enabled: will recreate compose services (down -v + up --build)"
 fi
 
 # --- 1) Restore repo (but keep this script safe once it's tracked) ---
@@ -52,7 +53,7 @@ for i in {1..120}; do
   fi
   sleep 1
   if [[ "$i" == "120" ]]; then
-    echo "ERROR: Docker did not become ready."
+    die "ERROR: Docker did not become ready."
     echo "If you're in the devcontainer, ensure Docker Desktop is running on your Mac."
     exit 1
   fi
@@ -62,7 +63,6 @@ done
 log "Starting docker compose services..."
 
 if [[ "$FRESH" == "1" ]]; then
-  log "Fresh mode: stopping and removing compose services..."
   if command -v docker-compose >/dev/null 2>&1; then
     docker-compose down -v
     docker-compose up -d --build
@@ -87,7 +87,7 @@ DB_CONTAINER="myapp-db-1"
 NETWORK_NAME="$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{end}}' "$DB_CONTAINER" | awk '{print $1}')"
 
 if [[ -z "${NETWORK_NAME:-}" ]]; then
-  echo "ERROR: Could not determine compose network from $DB_CONTAINER"
+  die "ERROR: Could not determine compose network from $DB_CONTAINER"
   exit 1
 fi
 
@@ -95,7 +95,7 @@ fi
 DEVCONT_ID="$(docker ps --filter "label=devcontainer.local_folder=${PROJECT_ROOT}" --format '{{.ID}}' | head -n 1)"
 
 if [[ -z "${DEVCONT_ID:-}" ]]; then
-  echo "ERROR: Could not find a running VS Code devcontainer for this folder."
+  die "ERROR: Could not find a running VS Code devcontainer for this folder."
   echo "Open VS Code > Reopen in Container, then run ./dev_reset again."
   exit 1
 fi
@@ -122,7 +122,7 @@ for i in {1..60}; do
   fi
   sleep 1
   if [[ "$i" == "60" ]]; then
-    echo "ERROR: MySQL did not become ready."
+    die "ERROR: MySQL did not become ready."
     exit 1
   fi
 done
@@ -183,7 +183,7 @@ for i in {1..30}; do
   fi
   sleep 1
   if [[ "$i" == "30" ]]; then
-    echo "ERROR: Flask did not respond inside devcontainer."
+    die "ERROR: Flask did not respond inside devcontainer."
     echo "Check logs:"
     echo "  docker exec -it ${DEVCONT_ID} bash -lc 'tail -n 120 /tmp/flask.log'"
     exit 1
