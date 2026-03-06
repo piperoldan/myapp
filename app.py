@@ -12,7 +12,7 @@ from sqlalchemy.orm import sessionmaker
 app = Flask(__name__)
 
 db_url = os.getenv("DATABASE_URL") or (
-    f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@host.docker.internal:3306/{os.getenv('DB_NAME')}"
+    f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@db:3306/{os.getenv('DB_NAME')}"
 )
 print("DATABASE_URL being used:", db_url, flush=True)
 engine = create_engine(db_url)
