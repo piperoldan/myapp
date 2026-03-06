@@ -33,9 +33,11 @@ USER $USERNAME
 
 EXPOSE 4000
 # Persist bash history
+USER root
 RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.bash_history" \
-    && mkdir /commandhistory \
+    && mkdir -p /commandhistory \
     && touch /commandhistory/.bash_history \
-    && chown -R vscode /commandhistory \
+    && chown -R vscode:vscode /commandhistory \
     && echo "$SNIPPET" >> "/home/vscode/.bashrc"
+USER vscode
 CMD ["flask", "run", "--host=0.0.0.0", "--port=4000"]
