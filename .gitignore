@@ -3,3 +3,4 @@ __pycache__/
 *.py[cod]
 # Python virtual environment
 .venv/
+*.tgz

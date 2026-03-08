@@ -21,9 +21,42 @@ ok()   { printf "${GRN}✔${RST} %s\n" "$*"; }
 warn() { printf "${YEL}⚠${RST} %s\n" "$*"; }
 die()  { printf "${RED}✖${RST} %s\n" "$*"; exit 1; }
 
+backup_mysql_volume() {
+  local volume_name="myapp_mysql-data"
+  local backup_dir="${PROJECT_ROOT}/backups"
+  local timestamp
+  timestamp="$(date +%Y%m%d-%H%M%S)"
+  local backup_file="${backup_dir}/${volume_name}-${timestamp}.tgz"
+
+  mkdir -p "$backup_dir"
+
+  if docker volume inspect "$volume_name" >/dev/null 2>&1; then
+    log "Creating backup of ${volume_name}..."
+    docker run --rm \
+      -v "${volume_name}:/from" \
+      -v "${backup_dir}:/to" \
+      alpine \
+      sh -c "cd /from && tar -czf /to/$(basename "$backup_file") ."
+    ok "Backup created: ${backup_file}"
+  else
+    warn "Volume ${volume_name} not found. Skipping backup."
+  fi
+}
+
 MODE="run"   # run | status | logs | stop
 FRESH=0
 SAFE=0
+
+confirm_fresh_delete() {
+  echo
+  warn "DANGER: --fresh will delete Docker volumes, including MySQL data."
+  warn "This can erase app data stored in myapp_mysql-data."
+  echo
+  read -r -p "Type DELETE to continue: " CONFIRM
+  if [[ "$CONFIRM" != "DELETE" ]]; then
+    die "Aborted. --fresh was not run."
+  fi
+}
 
 case "${1:-}" in
   "" )
@@ -31,6 +64,7 @@ case "${1:-}" in
   --fresh )
     FRESH=1
     warn "Fresh mode enabled: will recreate compose services (down -v + up --build)"
+    confirm_fresh_delete
     ;;
   --safe )
     SAFE=1
@@ -232,6 +266,7 @@ done
 log "Starting docker compose services..."
 
 if [[ "$FRESH" == "1" ]]; then
+  backup_mysql_volume
   if command -v docker-compose >/dev/null 2>&1; then
     docker-compose down -v
     docker-compose up -d --build
