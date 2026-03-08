@@ -43,7 +43,45 @@ backup_mysql_volume() {
   fi
 }
 
-MODE="run"   # run | status | logs | stop
+restore_mysql_volume() {
+  local volume_name="myapp_mysql-data"
+  local backup_dir="${PROJECT_ROOT}/backups"
+
+  local latest_backup
+  latest_backup="$(ls -t "${backup_dir}/${volume_name}-"*.tgz 2>/dev/null | head -n 1)"
+
+  if [[ -z "${latest_backup:-}" ]]; then
+    die "No backup found in ${backup_dir}"
+  fi
+
+  warn "Restoring database from: ${latest_backup}"
+  warn "This will overwrite the current ${volume_name} volume."
+
+  read -r -p "Type RESTORE to continue: " CONFIRM
+  if [[ "$CONFIRM" != "RESTORE" ]]; then
+    die "Restore aborted."
+  fi
+
+  log "Stopping compose services..."
+  docker compose down || true
+
+  log "Removing existing volume..."
+  docker volume rm "${volume_name}" 2>/dev/null || true
+
+  log "Recreating volume..."
+  docker volume create "${volume_name}"
+
+  log "Restoring backup..."
+  docker run --rm \
+    -v "${volume_name}:/to" \
+    -v "${backup_dir}:/from" \
+    alpine \
+    sh -c "cd /to && tar -xzf /from/$(basename "${latest_backup}")"
+
+  ok "Database restored from ${latest_backup}"
+}
+
+MODE="run"   # run | status | logs | stop | snapshot-db | restore-db
 FRESH=0
 SAFE=0
 
@@ -70,6 +108,12 @@ case "${1:-}" in
     SAFE=1
     warn "Safe mode enabled: uncommitted changes will be stashed"
     ;;
+  --snapshot-db )
+    MODE="snapshot-db"
+    ;;
+  --restore-db )
+    MODE="restore-db"
+    ;;
   --status )
     MODE="status"
     ;;
@@ -90,6 +134,7 @@ Usage:
   ./dev_reset --status  Show environment status only
   ./dev_reset --logs    Show recent logs (flask + db)
   ./dev_reset --stop    Stop compose services (and leave repo untouched)
+  ./dev_reset --restore-db  Restore the latest MySQL volume backup
 USAGE
     exit 0
     ;;
@@ -103,6 +148,23 @@ esac
 find_devcontainer() {
   docker ps --filter "label=devcontainer.local_folder=${PROJECT_ROOT}" --format '{{.ID}}' | head -n 1
 }
+
+
+# --- MODE: snapshot-db ---
+if [[ "$MODE" == "snapshot-db" ]]; then
+  log "Creating database snapshot..."
+  backup_mysql_volume
+  ok "Snapshot complete."
+  exit 0
+fi
+
+# --- MODE: restore-db ---
+if [[ "$MODE" == "restore-db" ]]; then
+  log "Restoring latest database snapshot..."
+  restore_mysql_volume
+  ok "Restore complete."
+  exit 0
+fi
 
 # --- MODE: stop ---
 if [[ "$MODE" == "stop" ]]; then
