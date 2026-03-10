@@ -1,50 +1,56 @@
 #!/usr/bin/env python3
+
 import os
 import argparse
 from PIL import Image
 
-input_folder = "input_images"
-output_folder = "output_images"
+INPUT_FOLDER = "input_images"
+OUTPUT_FOLDER = "output_images"
+SUPPORTED_FORMATS = (".jpg", ".jpeg", ".png", ".webp")
 
-os.makedirs(output_folder, exist_ok=True)
 
-parser = argparse.ArgumentParser()
+def main():
+    parser = argparse.ArgumentParser(description="Process images with Pillow")
+    parser.add_argument("--resize", nargs=2, type=int, metavar=("WIDTH", "HEIGHT"))
+    parser.add_argument("--rotate", type=int, help="Rotate counter-clockwise")
+    parser.add_argument("--format", type=str, help="Output format: jpg, jpeg, png, webp")
+    args = parser.parse_args()
 
-parser.add_argument("--resize", nargs=2, type=int)
-parser.add_argument("--rotate", type=int)
+    os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
-args = parser.parse_args()
+    for filename in os.listdir(INPUT_FOLDER):
+        if not filename.lower().endswith(SUPPORTED_FORMATS):
+            continue
 
-for filename in os.listdir(input_folder):
-    SUPPORTED_FORMATS = (".jpg", ".jpeg", ".png", ".webp")
-
-    if filename.lower().endswith(SUPPORTED_FORMATS):
-        input_path = os.path.join(input_folder, filename)
-
+        input_path = os.path.join(INPUT_FOLDER, filename)
         img = Image.open(input_path)
 
-        if args.rotate:
+        name, ext = os.path.splitext(filename)
+        suffix = ""
+
+        if args.rotate is not None:
             img = img.rotate(args.rotate)
+            suffix += f"_rot{args.rotate}"
 
         if args.resize:
             width, height = args.resize
             img = img.resize((width, height))
+            suffix += f"_res{width}x{height}"
 
-        name, ext = os.path.splitext(filename)
+        if args.format:
+            ext = "." + args.format.lower()
 
-        suffix = ""
-
-        if args.rotate:
-            suffix += f"_rot{args.rotate}"
-
-        if args.resize:
-            suffix += f"_res{args.resize[0]}x{args.resize[1]}"
+        if ext in (".jpg", ".jpeg"):
+            img = img.convert("RGB")
 
         output_filename = f"{name}{suffix}{ext}"
-        output_path = os.path.join(output_folder, output_filename)
+        output_path = os.path.join(OUTPUT_FOLDER, output_filename)
 
         img.save(output_path)
+        print(f"Processed {filename} -> {output_filename}")
 
-        print(f"Processed {filename}")
+    print("Done.")
 
-print("Done.")
+
+if __name__ == "__main__":
+    main()
