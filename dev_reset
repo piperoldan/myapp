@@ -81,7 +81,7 @@ restore_mysql_volume() {
   ok "Database restored from ${latest_backup}"
 }
 
-MODE="run"   # run | status | logs | stop | snapshot-db | restore-db
+MODE="run"   # run | status | logs | stop | snapshot-db | restore-db | list-backups
 FRESH=0
 SAFE=0
 
@@ -114,6 +114,9 @@ case "${1:-}" in
   --restore-db )
     MODE="restore-db"
     ;;
+  --list-backups )
+    MODE="list-backups"
+    ;;
   --status )
     MODE="status"
     ;;
@@ -135,6 +138,7 @@ Usage:
   ./dev_reset --logs    Show recent logs (flask + db)
   ./dev_reset --stop    Stop compose services (and leave repo untouched)
   ./dev_reset --restore-db  Restore the latest MySQL volume backup
+  ./dev_reset --list-backups  List available MySQL volume backups
 USAGE
     exit 0
     ;;
@@ -163,6 +167,22 @@ if [[ "$MODE" == "restore-db" ]]; then
   log "Restoring latest database snapshot..."
   restore_mysql_volume
   ok "Restore complete."
+  exit 0
+fi
+
+# --- MODE: list-backups ---
+if [[ "$MODE" == "list-backups" ]]; then
+  log "Available database backups"
+
+  backup_dir="${PROJECT_ROOT}/backups"
+
+  if [[ ! -d "$backup_dir" ]]; then
+    warn "No backups directory found."
+    exit 0
+  fi
+
+  ls -lh "$backup_dir"/myapp_mysql-data-*.tgz 2>/dev/null || warn "No backups found."
+
   exit 0
 fi
 
