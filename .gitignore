@@ -4,3 +4,7 @@ __pycache__/
 # Python virtual environment
 .venv/
 *.tgz
+# image practice artifacts
+input_images/
+output_images/
+test_image.jpg
