@@ -16,7 +16,9 @@ parser.add_argument("--rotate", type=int)
 args = parser.parse_args()
 
 for filename in os.listdir(input_folder):
-    if filename.lower().endswith(".jpg"):
+    SUPPORTED_FORMATS = (".jpg", ".jpeg", ".png", ".webp")
+
+    if filename.lower().endswith(SUPPORTED_FORMATS):
         input_path = os.path.join(input_folder, filename)
 
         img = Image.open(input_path)
